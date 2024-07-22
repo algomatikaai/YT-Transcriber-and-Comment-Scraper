@@ -12,15 +12,15 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Try to import Groq, but handle the case where it's not installed
-try:
-    from groq import Groq
-    # Initialize Groq client
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    GROQ_AVAILABLE = True
-except ImportError:
-    st.warning("The 'groq' package is not installed. Summarization feature will be disabled.")
-    GROQ_AVAILABLE = False
+# Get the API key from environment variables
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# Check if the API key is set
+if not GROQ_API_KEY:
+    raise ValueError("Groq API key not found. Please set it in the .env file.")
+
+# Initialize Groq client
+client = Groq(api_key=GROQ_API_KEY)
 
 def get_video_id(url):
     video_id = None
@@ -91,9 +91,6 @@ def format_timestamp(timestamp):
     return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
 def summarize_transcript(transcript):
-    if not GROQ_AVAILABLE:
-        return "Summarization is not available because the 'groq' package is not installed."
-    
     try:
         completion = client.chat.completions.create(
             model="llama3-70b-8192",
@@ -143,16 +140,14 @@ if url:
                 st.download_button("Download Transcript", transcript, "transcript.txt")
 
                 # Summarize transcript
-                if GROQ_AVAILABLE:
-                    st.subheader("Video Summary and Action Plan")
-                    summary = summarize_transcript(transcript)
-                    if summary:
-                        st.markdown(summary)
-                        st.download_button("Download Summary", summary, "summary.txt")
-                    else:
-                        st.warning("Unable to generate summary for this video.")
+                st.subheader("Video Summary and Action Plan")
+                summary = summarize_transcript(transcript)
+                if summary:
+                    st.markdown(summary)
+                    st.download_button("Download Summary", summary, "summary.txt")
                 else:
-                    st.warning("Summarization feature is not available. Please install the 'groq' package to enable this feature.")
+                    st.warning("Unable to generate summary for this video.")
+
             else:
                 st.warning("No transcript available for this video.")
 

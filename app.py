@@ -15,12 +15,22 @@ load_dotenv()
 # Get the API key from environment variables
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+# Initialize variables
+client = None
+GROQ_AVAILABLE = False
+
 # Check if the API key is set
 if not GROQ_API_KEY:
-    raise ValueError("Groq API key not found. Please set it in the .env file.")
-
-# Initialize Groq client
-client = Groq(api_key=GROQ_API_KEY)
+    st.warning("Groq API key not found. Please set it in the .env file. Summarization feature will be disabled.")
+else:
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        GROQ_AVAILABLE = True
+    except ImportError:
+        st.warning("The 'groq' package is not installed. Summarization feature will be disabled.")
+    except Exception as e:
+        st.error(f"An error occurred while initializing the Groq client: {str(e)}")
 
 def get_video_id(url):
     video_id = None
@@ -91,6 +101,9 @@ def format_timestamp(timestamp):
     return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
 def summarize_transcript(transcript):
+    if not GROQ_AVAILABLE:
+        return "Summarization is not available because the Groq client could not be initialized."
+    
     try:
         completion = client.chat.completions.create(
             model="llama3-70b-8192",
@@ -140,13 +153,16 @@ if url:
                 st.download_button("Download Transcript", transcript, "transcript.txt")
 
                 # Summarize transcript
-                st.subheader("Video Summary and Action Plan")
-                summary = summarize_transcript(transcript)
-                if summary:
-                    st.markdown(summary)
-                    st.download_button("Download Summary", summary, "summary.txt")
+                if GROQ_AVAILABLE:
+                    st.subheader("Video Summary and Action Plan")
+                    summary = summarize_transcript(transcript)
+                    if summary:
+                        st.markdown(summary)
+                        st.download_button("Download Summary", summary, "summary.txt")
+                    else:
+                        st.warning("Unable to generate summary for this video.")
                 else:
-                    st.warning("Unable to generate summary for this video.")
+                    st.warning("Summarization feature is not available due to Groq client initialization issues.")
 
             else:
                 st.warning("No transcript available for this video.")

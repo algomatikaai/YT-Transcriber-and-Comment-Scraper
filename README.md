@@ -23,9 +23,14 @@ This Streamlit application allows users to transcribe YouTube videos, extract co
    pip install -r requirements.txt
    ```
 
-3. Create a `.env` file in the project root and add your Groq API key:
+3. Copy the `.env.example` file to a new file named `.env`:
    ```
-   GROQ_API_KEY=your_api_key_here
+   cp .env.example .env
+   ```
+
+4. Open the `.env` file and replace `your_api_key_here` with your actual Groq API key:
+   ```
+   GROQ_API_KEY=your_actual_api_key
    ```
    Note: The `.env` file is included in `.gitignore` to prevent exposing your API key. Never commit this file to version control.
 
@@ -80,6 +85,7 @@ This Streamlit application allows users to transcribe YouTube videos, extract co
 - The Groq API key is stored in a `.env` file, which is not tracked by git. This prevents accidental exposure of your API key.
 - Always keep your API keys secret and never share them publicly.
 - If you suspect your API key has been compromised, regenerate it immediately through the Groq platform.
+- The `.env.example` file is provided as a template. Make sure to create your own `.env` file with your actual API key.
 
 ## Contributing
 

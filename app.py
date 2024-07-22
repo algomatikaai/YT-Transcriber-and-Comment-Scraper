@@ -6,6 +6,21 @@ from youtube_comment_downloader import YoutubeCommentDownloader, SORT_BY_RECENT
 import json
 import re
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Try to import Groq, but handle the case where it's not installed
+try:
+    from groq import Groq
+    # Initialize Groq client
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    GROQ_AVAILABLE = True
+except ImportError:
+    st.warning("The 'groq' package is not installed. Summarization feature will be disabled.")
+    GROQ_AVAILABLE = False
 
 def get_video_id(url):
     video_id = None
@@ -75,7 +90,35 @@ def extract_comments(video_id):
 def format_timestamp(timestamp):
     return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-st.title("YouTube Video Transcriber and Comment Scraper")
+def summarize_transcript(transcript):
+    if not GROQ_AVAILABLE:
+        return "Summarization is not available because the 'groq' package is not installed."
+    
+    try:
+        completion = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"You are an AI assistant tasked with creating a summary and action plan from a YouTube video transcript. Your goal is to distill the key information from the transcript and provide actionable steps based on the content.\n\nHere is the transcript of the YouTube video:\n\n{transcript}\n\nPlease follow these steps to create a summary and action plan:\n\n1. Carefully read and analyze the entire transcript.\n\n2. Create a summary of the video content:\n   - Identify the main topic or theme of the video\n   - List the key points discussed in the video\n   - Highlight any important facts, statistics, or examples mentioned\n   - Note any significant conclusions or takeaways\n\n3. Develop an action plan based on the video content:\n   - Identify the main objective or goal presented in the video\n   - List 3-5 actionable steps that viewers can take to implement the ideas or advice given in the video\n   - For each step, provide a brief explanation of why it's important and how it relates to the video's content\n   - If applicable, suggest any resources or tools mentioned in the video that could help with implementing the action plan\n\n4. Present your summary and action plan in the following format:\n\n<summary>\n[Insert your summary here, using bullet points for key information]\n</summary>\n\n<action_plan>\nObjective: [State the main objective]\n\n1. [Action step 1]\n   - Explanation: [Brief explanation]\n\n2. [Action step 2]\n   - Explanation: [Brief explanation]\n\n3. [Action step 3]\n   - Explanation: [Brief explanation]\n\n[Add more steps if necessary]\n\nResources:\n- [List any relevant resources or tools mentioned in the video]\n</action_plan>\n\nEnsure that your summary is concise yet comprehensive, capturing the essence of the video content. The action plan should be practical and directly related to the video's main message or purpose. Use clear and straightforward language throughout your response."
+                },
+                {
+                    "role": "assistant",
+                    "content": ""
+                }
+            ],
+            temperature=0.5,
+            max_tokens=2030,
+            top_p=1,
+            stream=False,
+            stop=None,
+        )
+        return completion.choices[0].message.content
+    except Exception as e:
+        st.error(f"Error summarizing transcript: {str(e)}")
+        return None
+
+st.title("YouTube Video Transcriber, Comment Scraper, and Summarizer")
 
 url = st.text_input("Enter YouTube Video URL:")
 preferred_language = st.selectbox("Preferred language", ['id-ID', 'en', 'ja', 'ko', 'zh-Hans'])  # Add more language codes as needed
@@ -98,6 +141,18 @@ if url:
                 with open("transcript.txt", "w", encoding="utf-8") as f:
                     f.write(transcript)
                 st.download_button("Download Transcript", transcript, "transcript.txt")
+
+                # Summarize transcript
+                if GROQ_AVAILABLE:
+                    st.subheader("Video Summary and Action Plan")
+                    summary = summarize_transcript(transcript)
+                    if summary:
+                        st.markdown(summary)
+                        st.download_button("Download Summary", summary, "summary.txt")
+                    else:
+                        st.warning("Unable to generate summary for this video.")
+                else:
+                    st.warning("Summarization feature is not available. Please install the 'groq' package to enable this feature.")
             else:
                 st.warning("No transcript available for this video.")
 

@@ -1,0 +1,5 @@
+streamlit
+pandas
+youtube_transcript_api
+pytube
+youtube_comment_downloader

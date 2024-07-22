@@ -23,7 +23,7 @@ This Streamlit application allows users to transcribe YouTube videos, extract co
    pip install -r requirements.txt
    ```
 
-3. Copy the `.env.example` file to a new file named `.env`:
+3. Copy the `.env.example` file to create your own `.env` file:
    ```
    cp .env.example .env
    ```
@@ -32,7 +32,7 @@ This Streamlit application allows users to transcribe YouTube videos, extract co
    ```
    GROQ_API_KEY=your_actual_api_key
    ```
-   Note: The `.env` file is included in `.gitignore` to prevent exposing your API key. Never commit this file to version control.
+   Note: The `.env` file is ignored by git to prevent exposing your API key. Never commit this file to version control.
 
 ## Usage
 

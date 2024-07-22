@@ -21,7 +21,7 @@ GROQ_AVAILABLE = False
 
 # Check if the API key is set
 if not GROQ_API_KEY:
-    st.warning("Groq API key not found. Please set it in the .env file. Summarization feature will be disabled.")
+    raise ValueError("Groq API key not found. Please set it in the .env file.")
 else:
     try:
         from groq import Groq

@@ -118,7 +118,8 @@ def summarize_transcript(transcript):
                 }
             ],
             temperature=0.51,
-            max_tokens=94040,
+            max_tokens=8000
+            ,
             top_p=1,
             stream=False,
             stop=None,

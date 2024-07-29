@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get the API key from environment variables
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # Initialize variables
 client = None
@@ -21,7 +21,7 @@ GROQ_AVAILABLE = False
 
 # Check if the API key is set
 if not GROQ_API_KEY:
-    raise ValueError("Groq API key not found. Please set it in the .env file.")
+    st.error("Groq API key not found. Please set it in the Streamlit Cloud secrets or your local .env file.")
 else:
     try:
         from groq import Groq
@@ -106,19 +106,19 @@ def summarize_transcript(transcript):
     
     try:
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {
                     "role": "system",
                     "content": f"You are an AI assistant tasked with creating a summary and action plan from a YouTube video transcript. Your goal is to distill the key information from the transcript and provide actionable steps based on the content.\n\nHere is the transcript of the YouTube video:\n\n{transcript}\n\nPlease follow these steps to create a summary and action plan:\n\n1. Carefully read and analyze the entire transcript.\n\n2. Create a summary of the video content:\n   - Identify the main topic or theme of the video\n   - List the key points discussed in the video\n   - Highlight any important facts, statistics, or examples mentioned\n   - Note any significant conclusions or takeaways\n\n3. Develop an action plan based on the video content:\n   - Identify the main objective or goal presented in the video\n   - List 3-5 actionable steps that viewers can take to implement the ideas or advice given in the video\n   - For each step, provide a brief explanation of why it's important and how it relates to the video's content\n   - If applicable, suggest any resources or tools mentioned in the video that could help with implementing the action plan\n\n4. Present your summary and action plan in the following format:\n\n<summary>\n[Insert your summary here, using bullet points for key information]\n</summary>\n\n<action_plan>\nObjective: [State the main objective]\n\n1. [Action step 1]\n   - Explanation: [Brief explanation]\n\n2. [Action step 2]\n   - Explanation: [Brief explanation]\n\n3. [Action step 3]\n   - Explanation: [Brief explanation]\n\n[Add more steps if necessary]\n\nResources:\n- [List any relevant resources or tools mentioned in the video]\n</action_plan>\n\nEnsure that your summary is concise yet comprehensive, capturing the essence of the video content. The action plan should be practical and directly related to the video's main message or purpose. Use clear and straightforward language throughout your response."
                 },
                 {
-                    "role": "assistant",
-                    "content": ""
+                    "role": "user",
+                    "content": "Please summarize the transcript and create an action plan."
                 }
             ],
-            temperature=0.5,
-            max_tokens=2030,
+            temperature=0.51,
+            max_tokens=94040,
             top_p=1,
             stream=False,
             stop=None,
